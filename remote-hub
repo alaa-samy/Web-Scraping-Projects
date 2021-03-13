@@ -1,0 +1,50 @@
+# Import modules
+import requests
+from bs4 import BeautifulSoup
+
+headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) ' 
+                        'AppleWebKit/537.11 (KHTML, like Gecko) '
+                        'Chrome/23.0.1271.64 Safari/537.11',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+            'Accept-Encoding': 'none',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'Connection': 'keep-alive'}
+
+
+# Use requests to feuch the URL
+url = 'https://www.remotehub.com/jobs/search'
+results = requests.get(url, headers=headers)
+src = results.content
+soup = BeautifulSoup(src , 'lxml') 
+
+print('Is there a specific position you are looking for ?   Y(yes) / N(no)')
+answer = input().lower()
+
+if answer in['n','no' ,'na']:
+        jops = soup.find_all('smp-landings-entity')
+        for jop in jops:
+                jop_title = jop.find('div', class_ = 'title').text
+                company = jop.find('div', class_ = 'account-name-container').span.text
+                country = jop.find('div', class_ = 'location muted ng-star-inserted').span.text
+                print(f'{jop_title} -----> Company : {company} -----> Country : {country}')
+elif answer in ['y','yes','ye']:
+        print('Enter the position that you want :')
+        position = input()
+        if position in soup.text:
+                last_url= position.split('-')
+                url = f'https://www.remotehub.com/jobs/search?query={last_url}'
+                results = requests.get(url, headers=headers)
+                src = results.content
+                soup = BeautifulSoup(src , 'lxml')
+
+                jops = soup.find_all('smp-landings-entity')
+                for jop in jops:
+                        jop_title = jop.find('div', class_ = 'title').text
+                        company = jop.find('div', class_ = 'account-name-container').span.text
+                        country = jop.find('div', class_ = 'location muted ng-star-inserted').span.text
+                        print(f'{jop_title} -----> Company : {company} -----> Country : {country}')
+        else:
+                print('Sorry, incorrect position')
+else:
+        print('Incorrect answer')
